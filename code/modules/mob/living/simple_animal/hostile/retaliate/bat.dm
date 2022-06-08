@@ -38,5 +38,5 @@
 
 
 /mob/living/simple_animal/hostile/retaliate/bat/vampire
-	desc = "A rare breed of bat which roosts in spaceships.\nLooks a little... bloody."
+	desc = "A rare breed of bat which roosts in spaceships.\nLooks a little... <span class='red'>bloody</span>."
 	speed = -1.5
