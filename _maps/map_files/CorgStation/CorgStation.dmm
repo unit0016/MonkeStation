@@ -60555,7 +60555,7 @@
 /turf/open/floor/grass,
 /area/hallway/primary/fore)
 "olQ" = (
-/obj/machinery/gravity_generator/main/station,
+/obj/machinery/gravity_generator/main,
 /turf/open/floor/plasteel/dark,
 /area/engine/gravity_generator)
 "oma" = (

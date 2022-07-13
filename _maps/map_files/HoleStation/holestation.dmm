@@ -15817,7 +15817,6 @@
 /turf/open/floor/plasteel/dark,
 /area/hallway/secondary/exit)
 "gfp" = (
-/obj/machinery/gravity_generator/main/station,
 /obj/effect/turf_decal/tile/neutral,
 /obj/effect/turf_decal/tile/neutral{
 	dir = 8
@@ -15827,6 +15826,7 @@
 /obj/effect/decal/cleanable/dirt/dust,
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden/layer4,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden/layer2,
+/obj/machinery/gravity_generator/main,
 /turf/open/floor/plasteel/dark,
 /area/engine/gravity_generator)
 "ggi" = (

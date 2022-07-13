@@ -23913,11 +23913,11 @@
 /turf/open/floor/carpet,
 /area/crew_quarters/bar/atrium)
 "fuc" = (
-/obj/machinery/gravity_generator/main/station,
 /obj/effect/turf_decal/bot_white,
 /obj/effect/turf_decal/tile/neutral/tile_side{
 	dir = 4
 	},
+/obj/machinery/gravity_generator/main,
 /turf/open/floor/plasteel/dark,
 /area/engine/gravity_generator)
 "fuq" = (

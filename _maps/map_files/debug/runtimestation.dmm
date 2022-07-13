@@ -412,7 +412,6 @@
 /turf/open/floor/plasteel,
 /area/engine/gravity_generator)
 "bi" = (
-/obj/machinery/gravity_generator/main/station,
 /obj/effect/turf_decal/tile/neutral{
 	dir = 1
 	},
@@ -423,6 +422,7 @@
 /obj/effect/turf_decal/tile/neutral{
 	dir = 8
 	},
+/obj/machinery/gravity_generator/main,
 /turf/open/floor/plasteel/dark,
 /area/engine/gravity_generator)
 "bk" = (

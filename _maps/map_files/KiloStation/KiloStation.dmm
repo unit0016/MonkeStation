@@ -75887,7 +75887,6 @@
 /turf/open/floor/plasteel/dark,
 /area/engine/gravity_generator)
 "clQ" = (
-/obj/machinery/gravity_generator/main/station,
 /obj/effect/turf_decal/tile/neutral,
 /obj/effect/turf_decal/tile/neutral{
 	dir = 8
@@ -75896,6 +75895,7 @@
 /obj/machinery/atmospherics/pipe/simple/supply/hidden/layer2{
 	dir = 4
 	},
+/obj/machinery/gravity_generator/main,
 /turf/open/floor/plasteel/dark,
 /area/engine/gravity_generator)
 "clR" = (

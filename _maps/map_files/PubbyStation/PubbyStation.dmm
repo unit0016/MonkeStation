@@ -36631,8 +36631,8 @@
 	},
 /area/maintenance/department/engine)
 "bSy" = (
-/obj/machinery/gravity_generator/main/station,
 /obj/effect/turf_decal/bot,
+/obj/machinery/gravity_generator/main,
 /turf/open/floor/plasteel/white,
 /area/engine/gravity_generator)
 "bSB" = (
