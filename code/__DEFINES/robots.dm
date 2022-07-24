@@ -23,6 +23,9 @@
 ///Alert when a Cyborg gets disconnected from their AI.
 #define AI_NOTIFICATION_CYBORG_DISCONNECTED 5
 
+///Percent Chance the AI going malf occurs after multiple repeat uploads increases each time.
+#define AI_MALF_PERCENT_PER_UPLOAD 5
+
 //transfer_ai() defines. Main proc in ai_core.dm
 ///Downloading AI to InteliCard
 #define AI_TRANS_TO_CARD 1

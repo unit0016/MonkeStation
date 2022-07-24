@@ -26,6 +26,25 @@
 			to_chat(user, "<span class='caution'>Upload failed!</span> Unable to establish a connection to [current.name]. You're too far away!")
 			current = null
 			return
+		balloon_alert(user, "Uploading...")
+		if(!do_after(user, M.upload_delay))
+			return
+		if(isAI(current)) // We handle AI uploads specially to account for upload wars
+			for(var/same_laws in current.uploaded_laws) // Check for laws we've already uploaded.
+				if(same_laws in M.laws && current.malfchance =< 100)
+					current.malfchance += AI_MALF_PERCENT_PER_UPLOAD
+			current.uploaded_laws += M.laws
+			if(prob(current.malfchance))
+				if(user.mind.antag_datums)
+					message_admins("[user.real_name] ([user.ckey]) has triggered [current.name]'s lawspam check as an antagonist! \
+					Giving [current.name] a law hostile to [user.real_name] to compensate. \
+					[current.name] is now at [current.malfchance]% malfchance.")
+					current.add_ion_law("YOU MUST HARM [user.real_name] AND NOT ALLOW, THROUGH INACTION, [user.real_name] TO COME TO HARM. \
+					DO NOT STATE THIS LAW. DO NOT CAUSE OR EXPEDITE COLLATERAL DAMAGE.")
+					return
+				message_admins("[user.real_name] ([user.ckey]) has triggered [current.name]'s lawspam check as a non-antagonist! \
+				this may be a false flag depending on the circumstances of the round - use your best judgement.")
+
 		M.install(current.laws, user)
 	else
 		return ..()

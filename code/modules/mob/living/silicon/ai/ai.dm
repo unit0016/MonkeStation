@@ -29,6 +29,8 @@
 	sec_hud = DATA_HUD_SECURITY_BASIC
 	d_hud = DATA_HUD_DIAGNOSTIC_ADVANCED
 	mob_size = MOB_SIZE_LARGE
+	var/malfchance = 0 // Chance we go malf when another repeat upload occurs
+	var/list/uploaded_laws = list() // List of laws that have been uploaded to us
 	var/battery = 200 //emergency power if the AI's APC is off
 	var/list/network = list("ss13")
 	var/obj/machinery/camera/current

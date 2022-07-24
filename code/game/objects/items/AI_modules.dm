@@ -22,6 +22,8 @@ AI MODULES
 	throw_range = 7
 	var/list/laws = list()
 	var/bypass_law_amt_check = 0
+	// How long do we want the upload to take?
+	var/upload_delay = 10 SECONDS
 	materials = list(/datum/material/gold = 50)
 
 /obj/item/aiModule/examine(var/mob/user as mob)
