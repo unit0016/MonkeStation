@@ -6,12 +6,7 @@
 
 
 	feature_spawn_list = list(/obj/structure/geyser/random = 1)
-	/// All of these mobs are overpowered as shitballs, being deadcode holdovers. I'm so sorry.
-	mob_spawn_list = list(/mob/living/simple_animal/hostile/jungle/leaper = 5, \
-	/mob/living/simple_animal/hostile/jungle/mega_arachnid = 10, \
-	/mob/living/simple_animal/hostile/jungle/mook = 50, \
-	/mob/living/simple_animal/hostile/jungle/seedling = 1\
-	)
+	mob_spawn_list = null // Jungle mobs are a bit too broken to just haphazardly have around at the moment
 	flora_spawn_list = list(/obj/structure/flora/grass/jungle = 2 , \
 		/obj/structure/flora/grass/jungle/b = 2 , \
 		/obj/structure/flora/tree/jungle = 2 , \
