@@ -1,4 +1,4 @@
-/// Basetype both for Station and Mining levels.
+/// Basetype both for all jungle areas.
 /area/jungle
 	name = "Jungle Planetoid"
 	icon_state = "explored"
@@ -16,26 +16,28 @@
 	area_flags = VALID_TERRITORY | UNIQUE_AREA | FLORA_ALLOWED
 	outdoors = TRUE
 
-/// Station-Side Jungle Areas ///
 /// Ruins and Monsters begin spawning here
-/area/jungle/station/generated
+/area/jungle/generated
 	icon_state = "unexplored"
 	area_flags = VALID_TERRITORY | UNIQUE_AREA | CAVES_ALLOWED | FLORA_ALLOWED | MOB_SPAWN_ALLOWED
 	map_generator = /datum/map_generator/jungle_generator
 
-/// Ditto, but megafauna can spawn here too. Use VERY sparingly, if at all, since this generator isn't meant for the mining level.
-/area/jungle/station/generated/megafauna
+/// Ditto + Megafauna.
+/area/jungle/generated/megafauna
 	icon_state = "danger"
 	area_flags = VALID_TERRITORY | UNIQUE_AREA | CAVES_ALLOWED | FLORA_ALLOWED | MOB_SPAWN_ALLOWED | MEGAFAUNA_SPAWN_ALLOWED
 
-/// Mining Jungle Areas ///
-/// Ruins and Monsters begin spawning here
-/area/jungle/mining/generated
+/// Used for more mountainous or cavernous sections of map.
+/area/jungle/cave
+	name = "Jungle Cave System"
+
+/// Ruins + Monsters spawn here
+/area/jungle/cave/generated
 	icon_state = "unexplored"
 	area_flags = VALID_TERRITORY | UNIQUE_AREA | CAVES_ALLOWED | FLORA_ALLOWED | MOB_SPAWN_ALLOWED
-	map_generator = /datum/map_generator/cave_generator/hostile_jungle
+	map_generator = /datum/map_generator/cave_generator/jungle
 
-/// Ditto, but megafauna can spawn here too.
-/area/jungle/mining/generated/megafauna
+/// Ditto + Megafauna.
+/area/jungle/cave/generated/megafauna
 	icon_state = "danger"
 	area_flags = VALID_TERRITORY | UNIQUE_AREA | CAVES_ALLOWED | FLORA_ALLOWED | MOB_SPAWN_ALLOWED | MEGAFAUNA_SPAWN_ALLOWED

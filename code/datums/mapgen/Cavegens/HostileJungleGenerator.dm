@@ -1,5 +1,4 @@
-/// Based on cavegen instead of junglegenerator
-/datum/map_generator/cave_generator/hostile_jungle
+/datum/map_generator/cave_generator/jungle
 	open_turf_types = list(/turf/open/floor/plating/grass/jungle = 1, /turf/open/floor/plating/dirt/jungle = 15, /turf/open/floor/plating/dirt/jungle/dark = 10)
 	closed_turf_types =  list(/turf/closed/mineral/random/jungle = 1)
 	blacklisted_turf_types = list(/turf/open/water/jungle) // Don't override rivers
