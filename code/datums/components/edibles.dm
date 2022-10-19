@@ -52,6 +52,8 @@ Behavior that's still missing from this component that original food items had t
 	var/list/tastes
 	///The type of atom this creates when the object is microwaved.
 	var/microwaved_type
+	///The buffs these foods give when eaten
+	var/food_buffs
 
 /datum/component/edible/Initialize(list/initial_reagents,
 								food_flags = NONE,
@@ -63,6 +65,7 @@ Behavior that's still missing from this component that original food items had t
 								bite_consumption = 2,
 								microwaved_type,
 								junkiness,
+								food_buffs,
 								datum/callback/after_eat,
 								datum/callback/on_consume,
 								datum/callback/check_liked)
@@ -77,9 +80,19 @@ Behavior that's still missing from this component that original food items had t
 	RegisterSignal(parent, COMSIG_ITEM_MICROWAVE_COOKED, .proc/OnMicrowaveCooked)
 	RegisterSignal(parent, COMSIG_EDIBLE_INGREDIENT_ADDED, .proc/edible_ingredient_added)
 	RegisterSignal(parent, COMSIG_CLICK_ALT, .proc/show_radial_recipes)
+
+	if(!isturf(parent))
+		var/static/list/loc_connections = list(
+			COMSIG_ATOM_ENTERED = .proc/on_entered,
+		)
+		AddComponent(/datum/component/connect_loc_behalf, parent, loc_connections)
+	else
+		RegisterSignal(parent, COMSIG_ATOM_ENTERED, .proc/on_entered)
+
 	if(isitem(parent))
 		RegisterSignal(parent, COMSIG_ITEM_ATTACK, .proc/UseFromHand)
 		RegisterSignal(parent, COMSIG_ITEM_FRIED, .proc/OnFried)
+		RegisterSignal(parent, COMSIG_GRILL_FOOD, .proc/GrillFood)
 		RegisterSignal(parent, COMSIG_ITEM_MICROWAVE_ACT, .proc/OnMicrowaved)
 		RegisterSignal(parent, COMSIG_ITEM_USED_AS_INGREDIENT, .proc/used_to_customize)
 
@@ -96,6 +109,7 @@ Behavior that's still missing from this component that original food items had t
 	src.eat_time = eat_time
 	src.eatverbs = string_list(eatverbs)
 	src.junkiness = junkiness
+	src.food_buffs = food_buffs
 	src.after_eat = after_eat
 	src.on_consume = on_consume
 	src.initial_reagents = string_assoc_list(initial_reagents)
@@ -126,6 +140,7 @@ Behavior that's still missing from this component that original food items had t
 	bite_consumption = 2,
 	microwaved_type,
 	junkiness,
+	food_buffs,
 	datum/callback/after_eat,
 	datum/callback/on_consume,
 	datum/callback/check_liked
@@ -138,6 +153,7 @@ Behavior that's still missing from this component that original food items had t
 	src.eat_time = eat_time
 	src.eatverbs = eatverbs
 	src.junkiness = junkiness
+	src.food_buffs = food_buffs
 	src.after_eat = after_eat
 	src.on_consume = on_consume
 
@@ -145,6 +161,11 @@ Behavior that's still missing from this component that original food items had t
 	QDEL_NULL(after_eat)
 	QDEL_NULL(on_consume)
 	return ..()
+
+///Ability to feed food to puppers
+/datum/component/edible/proc/on_entered(datum/source, atom/movable/arrived, atom/old_loc, list/atom/old_locs)
+	SIGNAL_HANDLER
+	SEND_SIGNAL(parent, COMSIG_FOOD_CROSSED, arrived, bitecount)
 
 ///Response to being used to customize something
 /datum/component/edible/proc/used_to_customize(datum/source, atom/customized)
@@ -187,12 +208,35 @@ Behavior that's still missing from this component that original food items had t
 
 	return TryToEat(user, user)
 
-/datum/component/edible/proc/OnFried(fry_object)
+/datum/component/edible/proc/OnFried(datum/source, obj/fry_object)
 	SIGNAL_HANDLER
 	var/atom/our_atom = parent
+	fry_object.reagents.maximum_volume = our_atom.reagents.maximum_volume
 	our_atom.reagents.trans_to(fry_object, our_atom.reagents.total_volume)
 	qdel(our_atom)
 	return COMSIG_FRYING_HANDLED
+
+/datum/component/edible/proc/GrillFood(datum/source, atom/fry_object, grill_time)
+	SIGNAL_HANDLER
+
+	var/atom/this_food = parent
+
+	switch(grill_time) //no 0-20 to prevent spam
+		if(20 to 30)
+			this_food.name = "lightly-grilled [this_food.name]"
+			this_food.desc = "[this_food.desc] It's been lightly grilled."
+		if(30 to 80)
+			this_food.name = "grilled [this_food.name]"
+			this_food.desc = "[this_food.desc] It's been grilled."
+			foodtypes |= FRIED
+		if(80 to 100)
+			this_food.name = "heavily grilled [this_food.name]"
+			this_food.desc = "[this_food.desc] It's been heavily grilled."
+			foodtypes |= FRIED
+		if(100 to INFINITY) //grill marks reach max alpha
+			this_food.name = "Powerfully Grilled [this_food.name]"
+			this_food.desc = "A [this_food.name]. Reminds you of your wife, wait, no, it's prettier!"
+			foodtypes |= FRIED
 
 ///Called when food is created through processing (Usually this means it was sliced). We use this to pass the OG items reagents.
 /datum/component/edible/proc/OnProcessed(datum/source, atom/original_atom, list/chosen_processing_option)
@@ -324,6 +368,8 @@ Behavior that's still missing from this component that original food items had t
 	. = COMPONENT_ITEM_NO_ATTACK //Point of no return I suppose
 
 	if(eater == feeder)//If you're eating it yourself.
+		if(HAS_TRAIT(eater, TRAIT_VORACIOUS))
+			eat_time = eat_time * 0.5
 		if(!do_mob(feeder, eater, eat_time)) //Gotta pass the minimal eat time
 			return
 		if(IsFoodGone(owner, feeder))
@@ -344,6 +390,8 @@ Behavior that's still missing from this component that original food items had t
 			eater.visible_message("<span class='warning'>[eater] cannot force any more of \the [parent] to go down [eater.p_their()] throat!</span>", "<span class='warning'>You cannot force any more of \the [parent] to go down your throat!</span>")
 			return
 	else //If you're feeding it to someone else.
+		if(eater.surgeries.len)
+			return
 		if(isbrain(eater))
 			to_chat(feeder, "<span class='warning'>[eater] doesn't seem to have a mouth!</span>")
 			return
@@ -419,9 +467,8 @@ Behavior that's still missing from this component that original food items had t
 	if(!ishuman(M))
 		return FALSE
 	var/mob/living/carbon/human/H = M
-	if(HAS_TRAIT(H, TRAIT_AGEUSIA) && foodtypes & H.dna.species.toxic_food)
-		to_chat(H, "<span class='warning'>You don't feel so good...</span>")
-		H.adjust_disgust(25 + 30 * fraction)
+	if(HAS_TRAIT(H, TRAIT_AGEUSIA))
+		return
 
 	var/food_taste_reaction
 
@@ -460,6 +507,13 @@ Behavior that's still missing from this component that original food items had t
 	SEND_SIGNAL(parent, COMSIG_FOOD_CONSUMED, eater, feeder)
 
 	on_consume?.Invoke(eater, feeder)
+	if(food_buffs && ishuman(eater))
+		var/mob/living/carbon/consumer = eater
+		if(consumer.applied_food_buffs < consumer.max_food_buffs)
+			eater.apply_status_effect(food_buffs)
+			consumer.applied_food_buffs ++
+		else if(food_buffs in consumer.status_effects)
+			eater.apply_status_effect(food_buffs)
 
 	if(isturf(parent))
 		var/turf/T = parent

@@ -77,7 +77,7 @@
 /obj/item/food/grown/attackby(obj/item/O, mob/user, params)
 	..()
 	if (istype(O, /obj/item/plant_analyzer))
-		var/msg = "<span class='info'>*---------*\n This is \a <span class='name'>[src]</span>.\n"
+		var/msg = "<span class='info'>This is \a <span class='name'>[src]</span>.\n"
 		if(seed)
 			msg += seed.get_analyzer_text()
 		var/reag_txt = ""
@@ -89,8 +89,8 @@
 
 		if(reag_txt)
 			msg += reag_txt
-			msg += "<br><span class='info'>*---------*</span>"
-		to_chat(user, msg)
+			msg += "<br><span class='info'></span>"
+		to_chat(user, examine_block(msg))
 	else
 		if(seed)
 			for(var/datum/plant_gene/trait/T in seed.genes)
@@ -101,6 +101,14 @@
 	if(trash_type)
 		AddElement(/datum/element/food_trash, trash_type, FOOD_TRASH_OPENABLE, /obj/item/food/grown/.proc/generate_trash)
 	return
+
+/// Callback proc for bonus behavior for generating trash of grown food. Used by [/datum/element/food_trash].
+/obj/item/food/grown/proc/generate_trash()
+	// If this is some type of grown thing, we pass a seed arg into its Inititalize()
+	if(ispath(trash_type, /obj/item/grown) || ispath(trash_type, /obj/item/food/grown))
+		return new trash_type(src, seed)
+
+	return new trash_type(src)
 
 // Various gene procs
 /obj/item/food/grown/attack_self(mob/user)
@@ -154,10 +162,6 @@
 		if(seed)
 			for(var/datum/plant_gene/trait/T in seed.genes)
 				T.on_consume(src, usr)
-
-///Callback for bonus behavior for generating trash of grown food.
-/obj/item/food/grown/proc/generate_trash(atom/location)
-	return new trash_type(location, seed)
 
 /obj/item/food/grown/grind_requirements()
 	if(dry_grind && !HAS_TRAIT(src, TRAIT_DRIED))

@@ -53,14 +53,14 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 #define ALLOW_DARK_PAINTS_1 (1<<14)
 /// Should this object be unpaintable?
 #define UNPAINTABLE_1 (1<<15)
+//! Should we use the initial icon for display? Mostly used by overlay only objects
+#define HTML_USE_INITAL_ICON_1		(1<<18)
 /// Is the thing currently spinning?
 #define IS_SPINNING_1 (1<<16)
 #define IS_ONTOP_1 (1<<17)
 #define SUPERMATTER_IGNORES_1 (1<<18)
 /// If a turf can be made dirty at roundstart. This is also used in areas.
 #define CAN_BE_DIRTY_1 (1<<19)
-/// Should we use the initial icon for display? Mostly used by overlay only objects
-#define HTML_USE_INITAL_ICON_1 (1<<20)
 /// Can players recolor this in-game via vendors (and maybe more if support is added)?
 #define IS_PLAYER_COLORABLE_1 (1<<21)
 /// Whether or not this atom has contextual screentips when hovered OVER
@@ -97,25 +97,37 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 
 ////////////////Area flags\\\\\\\\\\\\\\
 /// If it's a valid territory for cult summoning or the CRAB-17 phone to spawn
-#define VALID_TERRITORY				(1<<0)
+#define VALID_TERRITORY (1<<0)
 /// If blobs can spawn there and if it counts towards their score.
-#define BLOBS_ALLOWED				(1<<1)
+#define BLOBS_ALLOWED (1<<1)
 /// If mining tunnel generation is allowed in this area
-#define CAVES_ALLOWED				(1<<2)
+#define CAVES_ALLOWED (1<<2)
 /// If flora are allowed to spawn in this area randomly through tunnel generation
-#define FLORA_ALLOWED				(1<<3)
+#define FLORA_ALLOWED (1<<3)
 /// If mobs can be spawned by natural random generation
-#define MOB_SPAWN_ALLOWED			(1<<4)
+#define MOB_SPAWN_ALLOWED (1<<4)
 /// If megafauna can be spawned by natural random generation
-#define MEGAFAUNA_SPAWN_ALLOWED		(1<<5)
+#define MEGAFAUNA_SPAWN_ALLOWED (1<<5)
+/// Are you forbidden from teleporting to the area? (centcom, mobs, wizard, hand teleporter)
+#define NOTELEPORT (1<<6)
 /// Hides area from player Teleport function.
-#define HIDDEN_AREA					(1<<6)
+#define HIDDEN_AREA (1<<7)
 /// If false, loading multiple maps with this area type will create multiple instances.
-#define UNIQUE_AREA					(1<<7)
+#define UNIQUE_AREA (1<<8)
 /// If people are allowed to suicide in it. Mostly for OOC stuff like minigames
-#define BLOCK_SUICIDE				(1<<8)
+#define BLOCK_SUICIDE (1<<9)
 /// Can the Xenobio management console transverse this area by default?
-#define XENOBIOLOGY_COMPATIBLE		(1<<9)
+#define XENOBIOLOGY_COMPATIBLE (1<<10)
+/// If Abductors are unable to teleport in with their observation console
+#define ABDUCTOR_PROOF (1<<11)
+/// If an area should be hidden from power consoles, power/atmosphere alerts, etc.
+#define NO_ALERTS (1<<12)
+/// If blood cultists can draw runes or build structures on this AREA.
+#define CULT_PERMITTED (1<<13)
+///Whther this area is iluminated by starlight
+#define AREA_USES_STARLIGHT (1<<14)
+/// If engravings are persistent in this area
+#define PERSISTENT_ENGRAVINGS (1<<15)
 
 /*
 	These defines are used specifically with the atom/pass_flags bitmask

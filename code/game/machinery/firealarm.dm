@@ -64,7 +64,7 @@
 	update_icon()
 	myarea = get_area(src)
 	LAZYADD(myarea.firealarms, src)
-	AddComponent(/datum/component/shell, list(new /obj/item/circuit_component/firealarm()), SHELL_CAPACITY_LARGE)
+	AddComponent(/datum/component/shell, list(new /obj/item/circuit_component/firealarm()), SHELL_CAPACITY_MEDIUM)
 
 /obj/machinery/firealarm/Destroy()
 	myarea.firereset(src)
@@ -149,7 +149,7 @@
 	..()
 
 /obj/machinery/firealarm/proc/alarm(mob/user)
-	if(!is_operational() || (last_alarm+FIREALARM_COOLDOWN > world.time))
+	if(!is_operational || (last_alarm+FIREALARM_COOLDOWN > world.time))
 		return
 	last_alarm = world.time
 	var/area/A = get_area(src)
@@ -160,7 +160,7 @@
 	SEND_SIGNAL(src,COMSIG_FIREALARM_SET)
 
 /obj/machinery/firealarm/proc/reset(mob/user)
-	if(!is_operational())
+	if(!is_operational)
 		return
 	var/area/A = get_area(src)
 	A.firereset(src)
@@ -253,7 +253,7 @@
 						if(buildstage == 1)
 							if(machine_stat & BROKEN)
 								to_chat(user, "<span class='notice'>You remove the destroyed circuit.</span>")
-								machine_stat &= ~BROKEN
+								set_machine_stat(machine_stat & ~BROKEN)
 							else
 								to_chat(user, "<span class='notice'>You pry out the circuit.</span>")
 								new /obj/item/electronics/firealarm(user.loc)
@@ -319,7 +319,7 @@
 /obj/machinery/firealarm/obj_break(damage_flag)
 	if(!(machine_stat & BROKEN) && !(flags_1 & NODECONSTRUCT_1) && buildstage != 0) //can't break the electronics if there isn't any inside.
 		LAZYREMOVE(myarea.firealarms, src)
-		machine_stat |= BROKEN
+		set_machine_stat(machine_stat | BROKEN)
 		update_icon()
 
 /obj/machinery/firealarm/deconstruct(disassembled = TRUE)
@@ -339,39 +339,6 @@
 		set_light(l_power = 0.8)
 	else
 		set_light(l_power = 0)
-
-/*
- * Return of Party button
- */
-
-/area
-	var/party = FALSE
-
-/obj/machinery/firealarm/partyalarm
-	name = "\improper PARTY BUTTON"
-	desc = "Cuban Pete is in the house!"
-	var/static/party_overlay
-
-/obj/machinery/firealarm/partyalarm/reset()
-	if (machine_stat & (NOPOWER|BROKEN))
-		return
-	var/area/A = get_area(src)
-	if (!A || !A.party)
-		return
-	A.party = FALSE
-	A.cut_overlay(party_overlay)
-
-/obj/machinery/firealarm/partyalarm/alarm()
-	if (machine_stat & (NOPOWER|BROKEN))
-		return
-	var/area/A = get_area(src)
-	if (!A || A.party || A.name == "Space")
-		return
-	A.party = TRUE
-	if (!party_overlay)
-		party_overlay = iconstate2appearance('icons/turf/areas.dmi', "party")
-	A.add_overlay(party_overlay)
-
 
 /*
 Monkestation: Added circuit component
@@ -421,12 +388,10 @@ Ported from /tg/station: PR #64985
 	is_on.set_output(1)
 	output_set.set_output(COMPONENT_SIGNAL)
 
-
 /obj/item/circuit_component/firealarm/proc/on_firealarm_reset(atom/source)
 	SIGNAL_HANDLER
 	is_on.set_output(0)
 	output_reset.set_output(COMPONENT_SIGNAL)
-
 
 /obj/item/circuit_component/firealarm/input_received(datum/port/input/port)
 	. = ..()

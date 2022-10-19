@@ -56,6 +56,7 @@
 
 	///Proximity monitor associated with this atom
 	var/datum/proximity_monitor/proximity_monitor
+
 	///Cooldown tick timer for buckle messages
 	var/buckle_message_cooldown = 0
 	///Last fingerprints to touch this atom
@@ -89,7 +90,7 @@
 
 	var/flags_ricochet = NONE
 	///When a projectile tries to ricochet off this atom, the projectile ricochet chance is multiplied by this
-	var/ricochet_chance_mod = 1
+	var/receive_ricochet_chance_mod = 1
 	///When a projectile ricochets off this atom, it deals the normal damage * this modifier to this atom
 	var/ricochet_damage_mod = 0.33
 
@@ -202,7 +203,7 @@
 	flags_1 |= INITIALIZED_1
 
 	if(loc)
-		SEND_SIGNAL(loc, COMSIG_ATOM_CREATED, src) /// Sends a signal that the new atom `src`, has been created at `loc`
+		SEND_SIGNAL(loc, COMSIG_ATOM_INITIALIZED_ON, src) /// Sends a signal that the new atom `src`, has been created at `loc`
 
 	if(greyscale_config && greyscale_colors)
 		update_greyscale()
@@ -272,11 +273,11 @@
   * * clears overlays and priority overlays
   * * clears the light object
   */
-/atom/Destroy()
+/atom/Destroy(force)
 	if(alternate_appearances)
-		for(var/K in alternate_appearances)
-			var/datum/atom_hud/alternate_appearance/AA = alternate_appearances[K]
-			AA.remove_from_hud(src)
+		for(var/current_alternate_appearance in alternate_appearances)
+			var/datum/atom_hud/alternate_appearance/selected_alternate_appearance = alternate_appearances[current_alternate_appearance]
+			selected_alternate_appearance.remove_from_hud(src)
 
 	if(reagents)
 		QDEL_NULL(reagents)
@@ -284,17 +285,19 @@
 	orbiters = null // The component is attached to us normaly and will be deleted elsewhere
 
 	LAZYCLEARLIST(overlays)
-	LAZYCLEARLIST(priority_overlays)
-	LAZYCLEARLIST(managed_overlays)
+	LAZYNULL(managed_overlays)
+
+	QDEL_NULL(light)
+	QDEL_NULL(ai_controller)
+
+	if(smoothing_flags & SMOOTH_QUEUED)
+		SSicon_smooth.remove_from_queues(src)
 
 	for(var/i in targeted_by)
 		var/mob/M = i
 		LAZYREMOVE(M.do_afters, src)
 
 	targeted_by = null
-
-	QDEL_NULL(light)
-	QDEL_NULL(ai_controller)
 
 	return ..()
 
@@ -431,10 +434,6 @@
 				M.forceMove(src)
 	parts_list.Cut()
 
-///Hook for multiz???
-/atom/proc/update_multiz(prune_on_fail = FALSE)
-	return FALSE
-
 ///Take air from the passed in gas mixture datum
 /atom/proc/assume_air(datum/gas_mixture/giver)
 	return null
@@ -551,10 +550,10 @@
   * COMSIG_ATOM_GET_EXAMINE_NAME signal
   */
 /atom/proc/get_examine_name(mob/user)
-	. = "\a [src]"
+	. = "\a <b>[src]</b>"
 	var/list/override = list(gender == PLURAL ? "some" : "a", " ", "[name]")
 	if(article)
-		. = "[article] [src]"
+		. = "[article] <b>[src]</b>"
 		override[EXAMINE_POSITION_ARTICLE] = article
 	if(SEND_SIGNAL(src, COMSIG_ATOM_GET_EXAMINE_NAME, user, override) & COMPONENT_EXNAME_CHANGED)
 		. = override.Join("")
@@ -572,7 +571,11 @@
   * Produces a signal COMSIG_PARENT_EXAMINE
   */
 /atom/proc/examine(mob/user)
-	. = list("[get_examine_string(user, TRUE)].")
+	var/examine_string = get_examine_string(user, thats = TRUE)
+	if(examine_string)
+		. = list("[examine_string].")
+	else
+		. = list()
 
 	if(desc)
 		. += desc
@@ -586,8 +589,8 @@
 			. += "It contains:"
 			if(length(reagents.reagent_list))
 				if(user.can_see_reagents()) //Show each individual reagent
-					for(var/datum/reagent/R in reagents.reagent_list)
-						. += "[R.volume] units of [R.name]"
+					for(var/datum/reagent/current_reagent in reagents.reagent_list)
+						. += "&bull; [round(current_reagent.volume, 0.01)] units of [current_reagent.name]"
 				else //Otherwise, just show the total volume
 					var/total_volume = 0
 					for(var/datum/reagent/R in reagents.reagent_list)
@@ -603,25 +606,69 @@
 
 	SEND_SIGNAL(src, COMSIG_PARENT_EXAMINE, user, .)
 
+/**
+ * Updates the appearence of the icon
+ *
+ * Mostly delegates to update_name, update_desc, and update_icon
+ *
+ * Arguments:
+ * - updates: A set of bitflags dictating what should be updated. Defaults to [ALL]
+ */
+/atom/proc/update_appearance(updates=ALL)
+	SHOULD_NOT_SLEEP(TRUE)
+	SHOULD_CALL_PARENT(TRUE)
+
+	. = NONE
+	updates &= ~SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_APPEARANCE, updates)
+	if(updates & UPDATE_NAME)
+		. |= update_name(updates)
+	if(updates & UPDATE_DESC)
+		. |= update_desc(updates)
+	if(updates & UPDATE_ICON)
+		. |= update_icon(updates)
+
+/// Updates the name of the atom
+/atom/proc/update_name(updates=ALL)
+	SHOULD_CALL_PARENT(TRUE)
+	return SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_NAME, updates)
+
+/// Updates the description of the atom
+/atom/proc/update_desc(updates=ALL)
+	SHOULD_CALL_PARENT(TRUE)
+	return SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_DESC, updates)
+
 /// Updates the icon of the atom
-/atom/proc/update_icon()
+/atom/proc/update_icon(updates=ALL)
 	SIGNAL_HANDLER
 
-	// I expect we're going to need more return flags and options in this proc
-	var/signalOut = SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_ICON)
-	if(!(signalOut & COMSIG_ATOM_NO_UPDATE_ICON_STATE))
+	. = NONE
+	updates &= ~SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_ICON, updates)
+	if(updates & UPDATE_ICON_STATE)
 		update_icon_state()
-	if(!(signalOut & COMSIG_ATOM_NO_UPDATE_OVERLAYS))
-		var/list/new_overlays = update_overlays()
+		. |= UPDATE_ICON_STATE
+
+	if(updates & UPDATE_OVERLAYS)
+		if(LAZYLEN(managed_vis_overlays))
+			SSvis_overlays.remove_vis_overlay(src, managed_vis_overlays)
+
+		var/list/new_overlays = update_overlays(updates)
 		if(managed_overlays)
 			cut_overlay(managed_overlays)
 			managed_overlays = null
 		if(length(new_overlays))
-			managed_overlays = new_overlays
+			if (length(new_overlays) == 1)
+				managed_overlays = new_overlays[1]
+			else
+				managed_overlays = new_overlays
 			add_overlay(new_overlays)
+		. |= UPDATE_OVERLAYS
+
+	. |= SEND_SIGNAL(src, COMSIG_ATOM_UPDATED_ICON, updates, .)
 
 /// Updates the icon state of the atom
 /atom/proc/update_icon_state()
+	SHOULD_CALL_PARENT(TRUE)
+	return SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_ICON_STATE)
 
 /// Updates the overlays of the atom
 /atom/proc/update_overlays()
@@ -1515,7 +1562,9 @@
   * Override this if you want custom behaviour in whatever gets hit by the rust
   */
 /atom/proc/rust_heretic_act()
-	return
+	if(HAS_TRAIT(src, TRAIT_RUSTY))
+		return
+	AddElement(/datum/element/rust)
 
 /**
   * Used to set something as 'open' if it's being used as a supplypod

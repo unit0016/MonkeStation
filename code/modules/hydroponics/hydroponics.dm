@@ -6,6 +6,7 @@
 	pixel_z = 8
 	obj_flags = CAN_BE_HIT | UNIQUE_RENAME
 	circuit = /obj/item/circuitboard/machine/hydroponics
+	use_power = NO_POWER_USE
 	var/waterlevel = 100	//The amount of water in the tray (max 100)
 	var/maxwater = 100		//The maximum amount of water in the tray
 	var/nutrilevel = 10		//The amount of nutrient in the tray (max 10)
@@ -38,6 +39,7 @@
 	icon_state = "hydrotray3"
 
 /obj/machinery/hydroponics/constructable/RefreshParts()
+	. = ..()
 	var/tmp_capacity = 0
 	for (var/obj/item/stock_parts/matter_bin/M in component_parts)
 		tmp_capacity += M.rating
@@ -791,21 +793,23 @@
 			to_chat(user, "<span class='warning'>[src] already has seeds in it!</span>")
 
 	else if(istype(O, /obj/item/plant_analyzer))
+		var/list/combined_msg = list()
 		if(myseed)
-			to_chat(user, "*** <B>[myseed.plantname]</B> ***" )
-			to_chat(user, "- Plant Age: <span class='notice'>[age]</span>")
+			combined_msg += "*** <B>[myseed.plantname]</B> ***"
+			combined_msg += "- Plant Age: <span class='notice'>[age]</span>"
 			var/list/text_string = myseed.get_analyzer_text()
 			if(text_string)
-				to_chat(user, text_string)
+				combined_msg += "[text_string]"
 		else
-			to_chat(user, "<B>No plant found.</B>")
-		to_chat(user, "- Weed level: <span class='notice'>[weedlevel] / 10</span>")
-		to_chat(user, "- Pest level: <span class='notice'>[pestlevel] / 10</span>")
-		to_chat(user, "- Toxicity level: <span class='notice'>[toxic] / 100</span>")
-		to_chat(user, "- Water level: <span class='notice'>[waterlevel] / [maxwater]</span>")
-		to_chat(user, "- Nutrition level: <span class='notice'>[nutrilevel] / [maxnutri]</span>")
-		to_chat(user, "")
+			combined_msg += "<B>No plant found.</B>"
+		combined_msg += "- Weed level: <span class='notice'>[weedlevel] / 10</span>"
+		combined_msg += "- Pest level: <span class='notice'>[pestlevel] / 10</span>"
+		combined_msg += "- Toxicity level: <span class='notice'>[toxic] / 100</span>"
+		combined_msg += "- Water level: <span class='notice'>[waterlevel] / [maxwater]</span>"
+		combined_msg += "- Nutrition level: <span class='notice'>[nutrilevel] / [maxnutri]</span>"
+		combined_msg += ""
 
+		to_chat(user, examine_block(combined_msg.Join("\n")))
 	else if(istype(O, /obj/item/cultivator))
 		if(weedlevel > 0)
 			user.visible_message("[user] uproots the weeds.", "<span class='notice'>You remove the weeds from [src].</span>")
@@ -876,6 +880,17 @@
 
 /obj/machinery/hydroponics/proc/harvest_plant(mob/user)
 	if(harvest)
+		if(HAS_TRAIT(user, FOOD_JOB_BOTANIST))
+			var/random_increase = rand(1, 20) * 0.01
+			if(prob(50))
+				myseed.adjust_potency(round(myseed.potency *random_increase, 1), FALSE)
+			if(prob(20))
+				myseed.adjust_yield(round(myseed.yield * random_increase, 1), FALSE)
+			if(prob(35))
+				myseed.adjust_lifespan(round(myseed.lifespan * random_increase, 1), FALSE)
+			if(prob(40))
+				myseed.adjust_endurance(round(myseed.endurance * random_increase, 1), FALSE)
+
 		return myseed.harvest(user)
 
 	else if(dead)
@@ -939,13 +954,14 @@
 	self_sustaining = TRUE
 	update_icon()
 
-/obj/machinery/hydroponics/proc/update_name()
+/obj/machinery/hydroponics/update_name()
 	if(renamedByPlayer)
 		return
 	if(myseed)
 		name = "[initial(name)] ([myseed.plantname])"
 	else
 		name = initial(name)
+	return ..()
 
 ///////////////////////////////////////////////////////////////////////////////
 /obj/machinery/hydroponics/soil //Not actually hydroponics at all! Honk!

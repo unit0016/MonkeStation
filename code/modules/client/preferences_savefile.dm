@@ -5,7 +5,7 @@
 //	You do not need to raise this if you are adding new values that have sane defaults.
 //	Only raise this value when changing the meaning/format/name/layout of an existing value
 //	where you would want the updater procs below to run
-#define SAVEFILE_VERSION_MAX	37 //monkestation edit
+#define SAVEFILE_VERSION_MAX	38 //monkestation edit
 
 /*
 SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Carn
@@ -80,6 +80,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		key_bindings = S["key_bindings"]
 		key_bindings += list("Space" = list("hold_throw_mode"))
 		WRITE_FILE(S["key_bindings"], key_bindings)
+	if(current_version < 38)
+		clientfps = 60
 	 //monkestation edit end
 	return
 
@@ -234,7 +236,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	//Sanitize
 	asaycolor		= sanitize_ooccolor(sanitize_hexcolor(asaycolor, 6, TRUE, initial(asaycolor)))
 	ooccolor		= sanitize_ooccolor(sanitize_hexcolor(ooccolor, 6, TRUE, initial(ooccolor)))
-	screentip_color = sanitize_ooccolor(sanitize_hexcolor(screentip_color, 6, 1, initial(screentip_color)))
+	screentip_color = sanitize_hexcolor(screentip_color, 6, 1, initial(screentip_color))
 	lastchangelog	= sanitize_text(lastchangelog, initial(lastchangelog))
 	UI_style		= sanitize_inlist(UI_style, GLOB.available_ui_styles, GLOB.available_ui_styles[1])
 	hotkeys			= sanitize_integer(hotkeys, FALSE, TRUE, initial(hotkeys))

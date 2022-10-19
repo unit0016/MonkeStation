@@ -11,6 +11,10 @@
 	var/dreaming = 0 //How many dream images we have left to send
 	var/obj/item/handcuffed = null //Whether or not the mob is handcuffed
 	var/obj/item/legcuffed = null  //Same as handcuffs but for legs. Bear traps use this.
+	//List of active diseases
+	var/list/diseases = list()
+	// list of all diseases in a mob
+	var/list/disease_resistances = list()
 
 	var/disgust = 0
 
@@ -74,3 +78,7 @@
 
 	/// Timer id of any transformation
 	var/transformation_timer
+	/// How many food buffs we have at once
+	var/applied_food_buffs = 0
+	//Max amount of food buffs
+	var/max_food_buffs = 2
